@@ -56,7 +56,7 @@ export default {
       })
       this.message = ''
       this.$axios
-        .post('chatbotserver/reply', {
+        .post('https://sleepy-headland-26569.herokuapp.com/reply', {
           message: this.message,
         })
         .then((res) => {
