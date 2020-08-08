@@ -2,7 +2,7 @@
   <section class="chat-box">
     <div class="chat-box-list-container" ref="chatbox">
       <div class="message">
-        <div v-for="(message,index) in messages" :class="message.sender">
+        <div v-for="(message,index) in messages" :key="index" :class="message.sender">
           <img
             v-if="message.sender=='User'"
             src="https://image.flaticon.com/icons/svg/21/21104.svg"
