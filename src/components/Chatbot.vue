@@ -17,7 +17,7 @@
           />
 
           <p>{{message.message}}</p>
-          <span :class="message.timestamp">11:00</span>
+          <span :class="message.timestamp">{{message.time}}</span>
         </div>
         <div class="ChatBot" v-if="loading">
           <img
@@ -37,38 +37,85 @@
 </template>
 
 <script>
+import axios from 'axios'
 export default {
   name: 'Chatbot',
+
   data() {
     return {
       message: '',
       messages: [],
       loading: false,
+      timer: 10000,
+      interval: '',
+      checkLastInterval: '',
+      lastTime: new Date(),
     }
   },
   methods: {
     sendMessage() {
+      var currentMessage = this.message
+      this.message = ''
+      clearInterval(this.interval)
+      this.timer = this.timer + 10000
+      this.interval = setInterval(this.callThis, this.timer)
+      var today = new Date()
+      var time = this.timeCalc(today)
       this.loading = true
       this.messages.push({
-        message: this.message,
+        message: currentMessage,
         sender: 'User',
         timestamp: 'timeStampRight',
+        time: time,
       })
       this.$axios
         .post('https://sleepy-headland-26569.herokuapp.com/reply', {
-          message: this.message,
+          message: currentMessage,
         })
 
         .then((res) => {
+          var today = new Date()
+          this.lastTime = today
+          var time = this.timeCalc(today)
           this.messages.push({
             message: res.data,
             sender: 'ChatBot',
             timestamp: 'timeStampLeft',
+            time: time,
           })
           this.loading = false
-          this.message = ''
         })
     },
+    callThis() {
+      var today = new Date()
+      var time = this.timeCalc(today)
+      axios.get('https://sleepy-headland-26569.herokuapp.com/').then((res) => {
+        this.messages.push({
+          message: res.data,
+          sender: 'ChatBot',
+          timestamp: 'timeStampLeft',
+          time: time,
+        })
+        this.loading = false
+      })
+    },
+    timeCalc(today) {
+      var hours =
+        today.getHours() > 12 ? today.getHours() - 12 : today.getHours()
+      var period = today.getHours() > 12 ? 'PM' : 'AM'
+      var time = hours + ':' + today.getMinutes() + ':' + period
+      return time
+    },
+    checkTime() {
+      var today = new Date()
+      if (today.getMinutes() - this.lastTime.getMinutes() > 1) {
+        // console.log('Here', today.getMinutes())
+        this.interval = setInterval(this.callThis, 10000)
+      }
+    },
+  },
+  mounted: function () {
+    this.interval = setInterval(this.callThis, this.timer)
   },
 }
 </script>
